@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FaizGrafika - Cetak Kilat & Desain Profesional</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/brands.min.css">
+    <style>
+        body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; }
+        .brand-font { font-family: 'Cinzel', serif; letter-spacing: 0.03em; }
+        .star-row i { font-size: 10px; }
+
+        /* ===== Transisi modal (keranjang, checkout, popup) ===== */
+        .modal-panel { transition: transform 0.25s ease, opacity 0.25s ease; }
+        .modal-overlay { transition: opacity 0.25s ease; }
+        .modal-hidden-panel { transform: translateY(24px); opacity: 0; }
+        .modal-hidden-overlay { opacity: 0; }
+
+        /* ===== Transisi grid produk saat ganti kategori ===== */
+        #product-grid { transition: opacity 0.2s ease; }
+        #product-grid.grid-fading { opacity: 0; }
+
+        /* ===== Slider banner promo ===== */
+        #banner-track { display: flex; transition: transform 0.5s ease; }
+        #banner-track > div { flex: 0 0 100%; }
+
+        /* ===== Slider gambar produk (product.html) - dipakai juga di sini kalau perlu ===== */
+        .fly-dot { position: fixed; z-index: 60; border-radius: 9999px; pointer-events: none; transition: transform 0.55s cubic-bezier(.2,.8,.2,1), opacity 0.55s ease; }
+        @keyframes cartBump { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+        .cart-bump { animation: cartBump 0.35s ease; }
+    </style>
+</head>
+<body class="text-gray-800 pb-20">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-md lg:max-w-7xl mx-auto px-4 lg:px-8 py-3 lg:py-5 flex justify-between items-center">
+            <div class="flex items-center space-x-2 lg:space-x-3 cursor-pointer" id="brand-logo">
+                <i class="fa-solid fa-print text-orange-500 text-2xl lg:text-4xl"></i>
+                <span class="brand-font font-bold text-lg lg:text-2xl text-gray-900">FAIZGRAFIKA</span>
+            </div>
+            <div class="flex-1 max-w-xl mx-8 hidden lg:block">
+                <div class="relative">
+                    <input type="text" id="search-input-desktop" placeholder="Cari undangan, banner, fotocopy..." class="w-full bg-gray-100 text-sm rounded-full pl-11 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400 text-sm"></i>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4 lg:space-x-6">
+                <button onclick="openTrackOrder()" class="flex flex-col items-center text-gray-600 hover:text-orange-500 leading-none" title="Lacak Pesanan">
+                    <i class="fa-solid fa-magnifying-glass-location text-lg lg:text-2xl"></i>
+                    <span class="text-[9px] lg:text-[11px] font-medium mt-0.5">Lacak Pesanan</span>
+                </button>
+                <button onclick="openCart()" id="header-cart-btn" class="relative flex flex-col items-center text-gray-600 hover:text-orange-500 leading-none">
+                    <i class="fa-solid fa-cart-shopping text-lg lg:text-2xl"></i>
+                    <span id="cart-badge" class="hidden absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                    <span class="text-[9px] lg:text-[11px] font-medium mt-0.5">Keranjang Saya</span>
+                </button>
+            </div>
+        </div>
+        <div class="max-w-md mx-auto px-4 pb-3 lg:hidden">
+            <div class="relative">
+                <input type="text" id="search-input" placeholder="Cari undangan, banner, fotocopy..." class="w-full bg-gray-100 text-sm rounded-full pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-gray-400 text-sm"></i>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md lg:max-w-7xl mx-auto p-4 lg:px-8 space-y-4">
+        <!-- Banner Promo (dinamis dari panel admin, fallback ke banner default) -->
+        <div id="banner-slot" class="relative overflow-hidden rounded-2xl shadow-lg">
+            <div class="bg-gradient-to-r from-orange-500 to-amber-500 p-4 text-white relative overflow-hidden h-32 lg:h-56 flex items-center">
+                <div class="relative z-10">
+                    <h2 class="text-lg lg:text-2xl font-bold">Cetak Kilat & Desain Custom</h2>
+                    <p class="text-xs lg:text-sm text-orange-100 mt-1">Undangan, Banner, Dokumen & Logo Berkualitas Tinggi.</p>
+                </div>
+                <i class="fa-solid fa-layer-group absolute -right-4 -bottom-4 text-7xl text-orange-400 opacity-30"></i>
+            </div>
+        </div>
+
+        <!-- Kategori Menu -->
+        <div class="bg-white p-3 lg:p-5 rounded-2xl shadow-sm grid grid-cols-4 gap-2 lg:gap-4 text-center">
+            <button onclick="filterCategory('Undangan')" class="p-2 lg:p-3 hover:bg-orange-50 rounded-xl transition">
+                <div class="w-10 h-10 lg:w-14 lg:h-14 mx-auto bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mb-1 lg:text-lg"><i class="fa-solid fa-envelope-open-text"></i></div>
+                <span class="text-[11px] lg:text-sm font-medium">Undangan</span>
+            </button>
+            <button onclick="filterCategory('Cetak Dokumen')" class="p-2 lg:p-3 hover:bg-orange-50 rounded-xl transition">
+                <div class="w-10 h-10 lg:w-14 lg:h-14 mx-auto bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-1 lg:text-lg"><i class="fa-solid fa-file-lines"></i></div>
+                <span class="text-[11px] lg:text-sm font-medium">Dokumen</span>
+            </button>
+            <button onclick="filterCategory('Fotocopy')" class="p-2 lg:p-3 hover:bg-orange-50 rounded-xl transition">
+                <div class="w-10 h-10 lg:w-14 lg:h-14 mx-auto bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-1 lg:text-lg"><i class="fa-solid fa-copy"></i></div>
+                <span class="text-[11px] lg:text-sm font-medium">Fotocopy</span>
+            </button>
+            <button onclick="filterCategory('Desain Banner / Logo')" class="p-2 lg:p-3 hover:bg-orange-50 rounded-xl transition">
+                <div class="w-10 h-10 lg:w-14 lg:h-14 mx-auto bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mb-1 lg:text-lg"><i class="fa-solid fa-pen-nib"></i></div>
+                <span class="text-[11px] lg:text-sm font-medium">Banner/Logo</span>
+            </button>
+        </div>
+
+        <!-- Daftar Produk -->
+        <div>
+            <h3 class="font-bold text-sm text-gray-700 mb-3 flex items-center justify-between">
+                <span>Produk & Layanan Pilihan</span>
+                <span onclick="loadProducts()" class="text-xs text-orange-500 font-normal cursor-pointer">Semua Produk</span>
+            </h3>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3" id="product-grid">
+                <!-- Dinamis dari database -->
+                <div class="col-span-2 text-center py-8 text-gray-500 text-xs">Memuat produk dari database...</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer: Alamat, Peta Lokasi, Kontak WhatsApp -->
+    <footer class="max-w-md lg:max-w-7xl mx-auto px-4 lg:px-8 mt-8 pb-24 lg:pb-10">
+        <div class="bg-white rounded-2xl shadow-sm border p-5 lg:p-8 grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8">
+            <div class="space-y-2">
+                <h3 class="brand-font font-bold text-base lg:text-lg text-gray-900">FAIZGRAFIKA</h3>
+                <div class="flex gap-2 text-xs lg:text-sm text-gray-500">
+                    <i class="fa-solid fa-location-dot text-orange-500 mt-0.5"></i>
+                    <p id="footer-address">Memuat alamat...</p>
+                </div>
+                <a id="footer-wa-link" href="#" target="_blank" class="inline-flex items-center gap-2 text-xs lg:text-sm bg-green-500 hover:bg-green-600 text-white font-semibold px-3 py-2 rounded-lg transition mt-2">
+                    <i class="fa-brands fa-whatsapp text-base"></i> Hubungi Admin
+                </a>
+            </div>
+            <div class="rounded-xl overflow-hidden border h-40 lg:h-full min-h-[10rem]">
+                <iframe id="footer-map" src="" width="100%" height="100%" style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Tombol Keranjang Melayang (muncul jika ada isi) -->
+    <button id="floating-cart-btn" onclick="openCart()" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-gray-900 text-white text-xs font-semibold px-5 py-3 rounded-full shadow-lg items-center space-x-2">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span id="floating-cart-text">Keranjang (0) · Rp 0</span>
+    </button>
+
+    <!-- Modal Keranjang -->
+    <div id="cart-modal" class="modal-overlay fixed inset-0 bg-black/50 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="modal-panel bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl p-4 space-y-3 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-sm text-gray-800"><i class="fa-solid fa-cart-shopping text-orange-500 mr-1"></i> Keranjang Saya</h3>
+                <button onclick="closeCart()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div id="cart-items" class="space-y-2 text-xs">
+                <!-- diisi dinamis -->
+            </div>
+
+            <div class="border-t pt-3 flex justify-between items-center">
+                <span class="text-xs font-semibold text-gray-600">Total Belanja</span>
+                <span id="cart-total" class="font-bold text-orange-600 text-sm">Rp 0</span>
+            </div>
+
+            <button id="cart-checkout-btn" onclick="openCheckout()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-xs transition disabled:opacity-40" disabled>
+                Lanjut ke Pembayaran
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Checkout -->
+    <div id="checkout-modal" class="modal-overlay fixed inset-0 bg-black/50 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="modal-panel bg-white w-full max-w-md sm:max-w-lg rounded-t-2xl sm:rounded-2xl p-4 space-y-3 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-sm text-gray-800">Form Pesanan & Pembayaran</h3>
+                <button onclick="closeCheckout()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="bg-orange-50 p-3 rounded-xl space-y-1">
+                <p class="text-xs text-gray-500">Ringkasan Pesanan:</p>
+                <div id="checkout-summary" class="text-xs text-gray-700 space-y-0.5"></div>
+                <p id="checkout-total" class="font-bold text-orange-600 text-sm mt-1 pt-1 border-t border-orange-100">Total: Rp 0</p>
+            </div>
+
+            <!-- Upload file khusus item Cetak Dokumen / Fotocopy -->
+            <div id="checkout-uploads" class="space-y-2"></div>
+            <div id="checkout-notes" class="space-y-2"></div>
+
+            <!-- Biodata khusus pesanan Undangan -->
+            <div id="checkout-biodata" class="hidden space-y-2 bg-purple-50 p-3 rounded-xl">
+                <p class="text-xs font-semibold text-purple-700"><i class="fa-solid fa-envelope-open-text mr-1"></i> Biodata Undangan (untuk broadcast)</p>
+                <div>
+                    <label class="block font-medium text-gray-600 mb-1 text-xs">Nama Mempelai / Nama Acara</label>
+                    <input type="text" id="biodata-nama-acara" class="w-full border rounded-lg p-2 text-xs" placeholder="Contoh: Pernikahan Andi & Sari">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-medium text-gray-600 mb-1 text-xs">Tanggal Acara</label>
+                        <input type="date" id="biodata-tanggal" class="w-full border rounded-lg p-2 text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-600 mb-1 text-xs">Lokasi Acara</label>
+                        <input type="text" id="biodata-lokasi" class="w-full border rounded-lg p-2 text-xs" placeholder="Nama gedung/alamat">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-600 mb-1 text-xs">Catatan Tambahan (opsional)</label>
+                    <textarea id="biodata-catatan" rows="2" class="w-full border rounded-lg p-2 text-xs" placeholder="Contoh: mohon desain nuansa emas"></textarea>
+                </div>
+            </div>
+
+            <div class="space-y-2 text-xs">
+                <div>
+                    <label class="block font-medium text-gray-600 mb-1">Nama Pemesan</label>
+                    <input type="text" id="buyer-name" class="w-full border rounded-lg p-2 focus:ring-1 focus:ring-orange-500" placeholder="Masukkan nama lengkap">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-600 mb-1">Nomor WhatsApp</label>
+                    <input type="text" id="buyer-wa" class="w-full border rounded-lg p-2 focus:ring-1 focus:ring-orange-500" placeholder="08xxxxxxxxxx">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-600 mb-1">Metode Pembayaran</label>
+                    <select id="payment-method" class="w-full border rounded-lg p-2 bg-white">
+                        <option>Memuat metode pembayaran...</option>
+                    </select>
+                </div>
+                <p class="text-[10px] text-gray-400">*Pembayaran untuk sementara dikonfirmasi langsung via chat WhatsApp Admin setelah pesanan dibuat.</p>
+            </div>
+
+            <button id="submit-order-btn" onclick="submitOrder()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                Konfirmasi & Pesan via WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Popup Konfirmasi Pesanan (khusus alur desktop, tanpa redirect WhatsApp) -->
+    <div id="order-success-modal" class="modal-overlay fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="modal-panel bg-white w-full max-w-sm rounded-2xl p-5 space-y-3 text-center">
+            <div class="w-14 h-14 mx-auto bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h3 class="font-bold text-sm text-gray-800">Pesanan Berhasil Dibuat!</h3>
+            <p class="text-xs text-gray-500">Pesanan Anda sudah kami terima dan masuk ke sistem. Mohon tunggu konfirmasi — Admin kami akan segera menghubungi Anda.</p>
+            <p id="order-success-code" class="text-xs font-semibold text-orange-600"></p>
+            <div class="flex gap-2 pt-1">
+                <a id="order-success-nota-link" href="#" target="_blank" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold py-2.5 rounded-xl transition">Lihat Nota</a>
+                <button onclick="closeOrderSuccess()" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold py-2.5 rounded-xl transition">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Lacak Pesanan -->
+    <div id="track-modal" class="modal-overlay fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="modal-panel bg-white w-full max-w-sm rounded-2xl p-4 space-y-3 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-sm text-gray-800"><i class="fa-solid fa-magnifying-glass-location text-orange-500 mr-1"></i> Lacak Pesanan</h3>
+                <button onclick="closeTrackOrder()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="flex gap-2">
+                <input type="text" id="track-code-input" placeholder="Contoh: INV-20260923-6239" class="flex-1 border rounded-lg p-2 text-xs" onkeydown="if(event.key==='Enter') doTrackOrder()">
+                <button onclick="doTrackOrder()" class="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-3 rounded-lg">Cari</button>
+            </div>
+            <p id="track-error" class="hidden text-xs text-red-500"></p>
+            <div id="track-result" class="hidden bg-gray-50 rounded-xl p-3 text-xs space-y-1.5">
+                <div class="flex justify-between"><span class="text-gray-500">No. Pesanan</span><span id="tr-code" class="font-semibold">-</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Pemesan</span><span id="tr-buyer" class="text-right">-</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Status Pembayaran</span><span id="tr-payment" class="font-semibold text-orange-600">-</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Status Pesanan</span><span id="tr-order" class="font-semibold text-blue-600">-</span></div>
+                <div class="flex gap-2 pt-2">
+                    <a id="tr-nota-link" href="#" target="_blank" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white text-center font-bold py-2 rounded-lg">Lihat Invoice</a>
+                    <a id="tr-wa-link" href="#" target="_blank" class="flex-1 bg-green-500 hover:bg-green-600 text-white text-center font-bold py-2 rounded-lg"><i class="fa-brands fa-whatsapp"></i> Admin</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Jumlah Pembelian (dipakai tombol "Keranjang" di kartu produk, khusus produk TANPA varian) -->
+    <div id="qty-modal" class="modal-overlay fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="modal-panel bg-white w-full max-w-xs rounded-2xl p-4 space-y-3">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-sm text-gray-800">Jumlah Pembelian</h3>
+                <button onclick="closeQtyModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p id="qty-modal-product-name" class="text-xs text-gray-500"></p>
+            <input type="number" id="qty-modal-input" min="1" value="1" class="w-full border rounded-lg p-2.5 text-center text-lg font-bold" onkeydown="if(event.key==='Enter') confirmQtyAddToCart()">
+            <button onclick="confirmQtyAddToCart()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-sm transition">
+                Tambahkan ke Keranjang
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Pilih Variasi (muncul saat klik "Beli"/"Keranjang" pada produk yang punya varian) -->
+    <div id="variant-modal" class="modal-overlay fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="modal-panel bg-white w-full max-w-sm rounded-2xl p-4 space-y-3 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-sm text-gray-800">Pilih Variasi</h3>
+                <button onclick="closeVariantModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="flex items-center gap-3">
+                <img id="variant-modal-img" class="w-14 h-14 rounded-lg object-cover bg-gray-100" src="">
+                <div>
+                    <p id="variant-modal-name" class="text-xs font-semibold text-gray-800 line-clamp-2"></p>
+                    <p id="variant-modal-price" class="text-sm font-bold text-orange-600"></p>
+                </div>
+            </div>
+            <div>
+                <p class="text-[10px] font-semibold text-gray-500 mb-1.5">VARIASI</p>
+                <div id="variant-modal-options" class="grid grid-cols-2 gap-1.5"></div>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+                <span class="text-xs font-medium text-gray-600">Jumlah</span>
+                <div class="flex items-center gap-2">
+                    <button onclick="adjustVariantQty(-1)" class="w-7 h-7 rounded-full border text-gray-600 hover:bg-gray-50">−</button>
+                    <span id="variant-modal-qty" class="w-8 text-center font-bold text-sm">1</span>
+                    <button onclick="adjustVariantQty(1)" class="w-7 h-7 rounded-full border text-gray-600 hover:bg-gray-50">+</button>
+                </div>
+            </div>
+            <div class="flex items-center justify-between text-xs text-gray-500 border-t pt-2">
+                <span>Subtotal</span>
+                <span id="variant-modal-subtotal" class="font-bold text-gray-800"></span>
+            </div>
+            <div class="flex gap-2 pt-1">
+                <button onclick="confirmVariantModal('buy')" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-2.5 rounded-xl text-sm transition">Beli Sekarang</button>
+                <button onclick="confirmVariantModal('cart')" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-xl text-sm transition">Tambah Keranjang</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ADMIN_WA_NUMBER = '6289676707976'; // Fallback, akan ditimpa oleh pengaturan toko dari admin (lihat loadSiteSettings)
+        const CART_KEY = 'faizgrafika_cart';
+        const UPLOAD_CATEGORIES = ['Cetak Dokumen', 'Fotocopy'];
+        const NOTE_CATEGORIES = ['Desain Banner / Logo']; // kategori yang menampilkan kolom catatan konsumen
+
+        let allProducts = [];
+        let allPaymentMethods = [];
+
+        // ============== HELPER: FORMAT & CART STORAGE ==============
+        function formatRupiah(n) {
+            return 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+        }
+
+        function effectivePrice(p) {
+            return (p.discount_active && p.discount_price != null && Number(p.discount_price) < Number(p.price))
+                ? Number(p.discount_price)
+                : Number(p.price);
+        }
+
+        function starsHtml(avg) {
+            const rounded = Math.round(Number(avg || 0));
+            let html = '<span class="star-row text-amber-400">';
+            for (let i = 1; i <= 5; i++) {
+                html += `<i class="fa-solid fa-star${i <= rounded ? '' : ' text-gray-200'}"></i>`;
+            }
+            html += '</span>';
+            return html;
+        }
+
+        function getCart() {
+            try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; }
+            catch (e) { return []; }
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem(CART_KEY, JSON.stringify(cart));
+            renderCartBadge();
+        }
+
+        function cartTotal(cart) {
+            return cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+        }
+
+        function cartCount(cart) {
+            return cart.reduce((sum, i) => sum + i.qty, 0);
+        }
+
+        function renderCartBadge() {
+            const cart = getCart();
+            const count = cartCount(cart);
+            const badge = document.getElementById('cart-badge');
+            const floatBtn = document.getElementById('floating-cart-btn');
+            const floatText = document.getElementById('floating-cart-text');
+
+            if (count > 0) {
+                badge.classList.remove('hidden');
+                badge.innerText = count;
+                floatBtn.classList.remove('hidden');
+                floatBtn.classList.add('flex');
+                floatText.innerText = `Keranjang (${count}) · ${formatRupiah(cartTotal(cart))}`;
+            } else {
+                badge.classList.add('hidden');
+                floatBtn.classList.add('hidden');
+                floatBtn.classList.remove('flex');
+            }
+        }
+
+        // ============== BANNER PROMO (dinamis dari admin, carousel smooth) ==============
+        let bannerList = [];
+        let bannerIdx = 0;
+        let bannerAutoTimer = null;
+
+        async function loadBanners() {
+            try {
+                const res = await fetch('/api/banners');
+                const banners = await res.json();
+                if (Array.isArray(banners) && banners.length > 0) {
+                    bannerList = banners;
+                    buildBannerCarousel();
+                }
+                // Jika tidak ada banner aktif, banner default (gradient) yang sudah ada di HTML tetap tampil.
+            } catch (err) { /* biarkan banner default tampil */ }
+        }
+
+        function buildBannerCarousel() {
+            const slot = document.getElementById('banner-slot');
+            const slides = bannerList.map(b => {
+                const img = `<img src="${b.image_url}" alt="${b.title || 'Promo'}" class="w-full h-32 lg:h-56 object-contain bg-gray-100" fetchpriority="high" decoding="async">`;
+                return `<div>${b.link_url ? `<a href="${b.link_url}" target="_blank" rel="noopener">${img}</a>` : img}</div>`;
+            }).join('');
+
+            const arrows = bannerList.length > 1 ? `
+                <button onclick="bannerGo(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs z-20"><i class="fa-solid fa-chevron-left"></i></button>
+                <button onclick="bannerGo(1)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs z-20"><i class="fa-solid fa-chevron-right"></i></button>
+                <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20" id="banner-dots"></div>
+            ` : '';
+
+            slot.innerHTML = `<div id="banner-track">${slides}</div>${arrows}`;
+
+            if (bannerList.length > 1) {
+                renderBannerDots();
+                slot.addEventListener('touchstart', bannerTouchStart, { passive: true });
+                slot.addEventListener('touchend', bannerTouchEnd, { passive: true });
+                startBannerAutoplay();
+            }
+            updateBannerTrack();
+        }
+
+        function renderBannerDots() {
+            const dots = document.getElementById('banner-dots');
+            if (!dots) return;
+            dots.innerHTML = bannerList.map((_, i) =>
+                `<span class="w-1.5 h-1.5 rounded-full ${i === bannerIdx ? 'bg-white' : 'bg-white/50'}"></span>`
+            ).join('');
+        }
+
+        function updateBannerTrack() {
+            const track = document.getElementById('banner-track');
+            if (track) track.style.transform = `translateX(-${bannerIdx * 100}%)`;
+            renderBannerDots();
+        }
+
+        function bannerGo(delta) {
+            bannerIdx = (bannerIdx + delta + bannerList.length) % bannerList.length;
+            updateBannerTrack();
+            startBannerAutoplay(); // reset timer supaya tidak langsung geser lagi setelah interaksi manual
+        }
+
+        function startBannerAutoplay() {
+            clearInterval(bannerAutoTimer);
+            bannerAutoTimer = setInterval(() => bannerGo(1), 4000);
+        }
+
+        let bannerTouchX = 0;
+        function bannerTouchStart(e) { bannerTouchX = e.changedTouches[0].clientX; }
+        function bannerTouchEnd(e) {
+            const delta = e.changedTouches[0].clientX - bannerTouchX;
+            if (Math.abs(delta) > 40) bannerGo(delta < 0 ? 1 : -1);
+        }
+
+        // ============== METODE PEMBAYARAN (dinamis dari admin) ==============
+        async function loadPaymentMethods() {
+            try {
+                const res = await fetch('/api/payment-methods');
+                allPaymentMethods = await res.json();
+                const sel = document.getElementById('payment-method');
+                if (Array.isArray(allPaymentMethods) && allPaymentMethods.length > 0) {
+                    sel.innerHTML = allPaymentMethods.map(m => `<option value="${m.label}">${m.label}</option>`).join('');
+                } else {
+                    sel.innerHTML = '<option>Transfer Bank / QRIS / COD</option>';
+                }
+            } catch (err) {
+                document.getElementById('payment-method').innerHTML = '<option>Transfer Bank / QRIS / COD</option>';
+            }
+        }
+
+        // ============== PRODUK ==============
+        async function loadProducts() {
+            try {
+                const res = await fetch('/api/products');
+                allProducts = await res.json();
+                renderProducts(allProducts);
+            } catch (err) {
+                document.getElementById('product-grid').innerHTML = '<p class="col-span-2 text-center text-xs text-red-500">Gagal memuat produk. Periksa koneksi Supabase Anda.</p>';
+            }
+        }
+
+        function renderProducts(products) {
+            const grid = document.getElementById('product-grid');
+            grid.classList.add('grid-fading');
+            setTimeout(() => renderProductsNow(products), 150);
+        }
+
+        function renderProductsNow(products) {
+            const grid = document.getElementById('product-grid');
+            if (products.length === 0) {
+                grid.innerHTML = '<p class="col-span-2 text-center text-xs text-gray-400 py-6">Belum ada produk tersedia.</p>';
+                grid.classList.remove('grid-fading');
+                return;
+            }
+            grid.innerHTML = products.map(p => {
+                const price = effectivePrice(p);
+                const hasDiscount = price < Number(p.price);
+                const cover = (Array.isArray(p.image_urls) && p.image_urls[0]) || p.image_url;
+                return `
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col justify-between border border-gray-100">
+                    <a href="product.html?id=${p.id}" class="block">
+                        <div class="h-32 bg-gray-100 relative flex items-center justify-center">
+                            ${cover ? `<img src="${cover}" class="w-full h-full object-contain" loading="lazy" decoding="async">` : '<i class="fa-solid fa-image text-gray-400 text-2xl"></i>'}
+                            <span class="absolute top-2 left-2 bg-orange-500 text-white text-[9px] px-1.5 py-0.5 rounded">${p.category}</span>
+                            ${hasDiscount ? '<span class="absolute top-2 right-2 bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">PROMO</span>' : ''}
+                        </div>
+                        <div class="p-2">
+                            <h4 class="text-xs font-semibold text-gray-800 line-clamp-2">${p.name}</h4>
+                            <div class="flex items-center gap-1 mt-0.5">
+                                ${starsHtml(p.rating_avg)}
+                                <span class="text-[9px] text-gray-400">(${p.rating_count || 0})</span>
+                            </div>
+                            ${hasDiscount ? `<p class="text-[10px] text-gray-400 line-through">${formatRupiah(p.price)}</p>` : ''}
+                            <p class="text-xs text-orange-600 font-bold">${formatRupiah(price)}</p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">Stok: ${p.stock}</p>
+                        </div>
+                    </a>
+                    <div class="p-2 pt-0 flex gap-1.5">
+                        <button onclick='buyNow(${JSON.stringify(p.id)})' class="flex-1 bg-gray-900 hover:bg-gray-800 text-white text-xs py-1.5 rounded-lg font-medium transition">
+                            Beli
+                        </button>
+                        <button onclick='addToCartAnimated(event, ${JSON.stringify(p.id)})' class="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs py-1.5 rounded-lg font-medium transition">
+                            <i class="fa-solid fa-cart-plus"></i> Keranjang
+                        </button>
+                    </div>
+                </div>
+            `;
+            }).join('');
+            grid.classList.remove('grid-fading');
+        }
+
+        function filterCategory(cat) {
+            const filtered = allProducts.filter(p => p.category === cat);
+            renderProducts(filtered);
+        }
+
+        function handleSearchInput(e) {
+            const keyword = e.target.value.toLowerCase();
+            const other = e.target.id === 'search-input' ? 'search-input-desktop' : 'search-input';
+            const otherEl = document.getElementById(other);
+            if (otherEl) otherEl.value = e.target.value;
+            const filtered = allProducts.filter(p => p.name.toLowerCase().includes(keyword) || p.category.toLowerCase().includes(keyword));
+            renderProducts(filtered);
+        }
+        document.getElementById('search-input').addEventListener('input', handleSearchInput);
+        document.getElementById('search-input-desktop').addEventListener('input', handleSearchInput);
+
+        // ============== KERANJANG ==============
+        function addToCartCore(name, price, category, originalPrice, qty, variant) {
+            qty = Math.max(1, parseInt(qty, 10) || 1);
+            const cart = getCart();
+            const variantName = variant || null;
+            const existing = cart.find(i => i.name === name && (i.variant || null) === variantName);
+            if (existing) {
+                existing.qty += qty;
+            } else {
+                cart.push({ name, price, qty, category: category || '', original_price: originalPrice || price, variant: variantName });
+            }
+            saveCart(cart);
+            return cart;
+        }
+
+        // Tombol "Beli": produk tanpa varian langsung masuk keranjang (perilaku lama, tidak berubah).
+        // Produk dengan varian WAJIB pilih variasi dulu lewat popup.
+        function buyNow(id) {
+            const p = allProducts.find(x => String(x.id) === String(id));
+            if (!p) return;
+            if (Array.isArray(p.variants) && p.variants.length > 0) {
+                openVariantModal(p, null);
+                return;
+            }
+            addToCartCore(p.name, effectivePrice(p), p.category, Number(p.price));
+            openCart();
+        }
+
+        // Tombol "Keranjang" di kartu produk: produk tanpa varian tampilkan popup jumlah pembelian seperti biasa;
+        // produk dengan varian tampilkan popup pilih variasi dulu.
+        function addToCartAnimated(e, id) {
+            const p = allProducts.find(x => String(x.id) === String(id));
+            if (!p) return;
+            if (Array.isArray(p.variants) && p.variants.length > 0) {
+                openVariantModal(p, e.currentTarget);
+                return;
+            }
+            openQtyModal(p.name, effectivePrice(p), p.category, Number(p.price), e.currentTarget);
+        }
+
+        // ============== POPUP PILIH VARIASI (dipakai tombol "Beli"/"Keranjang" untuk produk yang punya varian) ==============
+        let variantModalContext = null; // { product, qty, selected, triggerEl }
+
+        function openVariantModal(p, triggerEl) {
+            const variants = (p.variants || []).slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+            variantModalContext = { product: p, qty: 1, selected: variants[0] || null, triggerEl, variants };
+
+            document.getElementById('variant-modal-name').innerText = p.name;
+            const cover = (Array.isArray(p.image_urls) && p.image_urls[0]) || p.image_url || '';
+            document.getElementById('variant-modal-img').src = cover;
+
+            document.getElementById('variant-modal-options').innerHTML = variants.map((v, i) => `
+                <button type="button" onclick="selectVariant(${i})"
+                    class="variant-opt text-left border rounded-lg px-2.5 py-2 text-xs font-medium transition ${i === 0 ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-700 hover:border-gray-400'}">
+                    ${v.name}
+                </button>
+            `).join('');
+
+            updateVariantModalSummary();
+            showModal('variant-modal');
+        }
+
+        function selectVariant(i) {
+            if (!variantModalContext) return;
+            variantModalContext.selected = variantModalContext.variants[i];
+            document.querySelectorAll('#variant-modal-options .variant-opt').forEach((btn, idx) => {
+                btn.classList.toggle('border-gray-900', idx === i);
+                btn.classList.toggle('bg-gray-900', idx === i);
+                btn.classList.toggle('text-white', idx === i);
+                btn.classList.toggle('border-gray-200', idx !== i);
+                btn.classList.toggle('text-gray-700', idx !== i);
+            });
+            updateVariantModalSummary();
+        }
+
+        function currentVariantUnitPrice() {
+            const { product, selected } = variantModalContext;
+            if (selected && selected.price !== null && selected.price !== undefined) return Number(selected.price);
+            return effectivePrice(product);
+        }
+
+        function updateVariantModalSummary() {
+            const price = currentVariantUnitPrice();
+            document.getElementById('variant-modal-price').innerText = formatRupiah(price);
+            document.getElementById('variant-modal-qty').innerText = variantModalContext.qty;
+            document.getElementById('variant-modal-subtotal').innerText = formatRupiah(price * variantModalContext.qty);
+        }
+
+        function adjustVariantQty(delta) {
+            if (!variantModalContext) return;
+            variantModalContext.qty = Math.max(1, variantModalContext.qty + delta);
+            updateVariantModalSummary();
+        }
+
+        function closeVariantModal() {
+            hideModal('variant-modal');
+            variantModalContext = null;
+        }
+
+        function confirmVariantModal(mode) {
+            if (!variantModalContext) return;
+            const { product, qty, selected, triggerEl } = variantModalContext;
+            if (!selected) { alert('Mohon pilih variasi terlebih dahulu.'); return; }
+
+            const price = currentVariantUnitPrice();
+            addToCartCore(product.name, price, product.category, Number(product.price), qty, selected.name);
+            closeVariantModal();
+
+            if (mode === 'buy') {
+                openCart();
+            } else if (triggerEl) {
+                flyToCart(triggerEl);
+            }
+        }
+
+        // ============== POPUP JUMLAH PEMBELIAN (dipakai tombol "Keranjang" di kartu produk) ==============
+        let qtyModalContext = null;
+
+        function openQtyModal(name, price, category, originalPrice, triggerEl) {
+            qtyModalContext = { name, price, category, originalPrice, triggerEl };
+            document.getElementById('qty-modal-product-name').innerText = name;
+            document.getElementById('qty-modal-input').value = 1;
+            showModal('qty-modal');
+            setTimeout(() => document.getElementById('qty-modal-input').focus(), 200);
+        }
+
+        function closeQtyModal() {
+            hideModal('qty-modal');
+            qtyModalContext = null;
+        }
+
+        function confirmQtyAddToCart() {
+            if (!qtyModalContext) return;
+            const qty = document.getElementById('qty-modal-input').value;
+            const { name, price, category, originalPrice, triggerEl } = qtyModalContext;
+            addToCartCore(name, price, category, originalPrice, qty);
+            closeQtyModal();
+            if (triggerEl) flyToCart(triggerEl);
+        }
+
+        function flyToCart(originEl) {
+            const cartIcon = document.getElementById('header-cart-btn');
+            if (!originEl || !cartIcon) return;
+            const start = originEl.getBoundingClientRect();
+            const end = cartIcon.getBoundingClientRect();
+
+            const dot = document.createElement('div');
+            dot.className = 'fly-dot bg-orange-500';
+            dot.style.width = '14px';
+            dot.style.height = '14px';
+            dot.style.left = (start.left + start.width / 2 - 7) + 'px';
+            dot.style.top = (start.top + start.height / 2 - 7) + 'px';
+            document.body.appendChild(dot);
+
+            requestAnimationFrame(() => {
+                dot.style.transform = `translate(${end.left - start.left}px, ${end.top - start.top}px) scale(0.3)`;
+                dot.style.opacity = '0.2';
+            });
+
+            setTimeout(() => {
+                dot.remove();
+                cartIcon.classList.add('cart-bump');
+                setTimeout(() => cartIcon.classList.remove('cart-bump'), 350);
+            }, 550);
+        }
+
+        function changeQty(index, delta) {
+            const cart = getCart();
+            if (!cart[index]) return;
+            cart[index].qty += delta;
+            if (cart[index].qty <= 0) cart.splice(index, 1);
+            saveCart(cart);
+            renderCart();
+        }
+
+        function setQty(index, value) {
+            const cart = getCart();
+            if (!cart[index]) return;
+            const qty = Math.max(1, parseInt(value, 10) || 1);
+            cart[index].qty = qty;
+            saveCart(cart);
+            renderCart();
+        }
+
+        function removeFromCart(index) {
+            const cart = getCart();
+            cart.splice(index, 1);
+            saveCart(cart);
+            renderCart();
+        }
+
+        function renderCart() {
+            const cart = getCart();
+            const wrap = document.getElementById('cart-items');
+            const checkoutBtn = document.getElementById('cart-checkout-btn');
+
+            if (cart.length === 0) {
+                wrap.innerHTML = '<p class="text-center text-gray-400 py-6">Keranjang masih kosong. Yuk tambahkan produk!</p>';
+                checkoutBtn.disabled = true;
+            } else {
+                wrap.innerHTML = cart.map((item, idx) => `
+                    <div class="flex items-center justify-between bg-gray-50 rounded-lg p-2">
+                        <div class="flex-1 pr-2">
+                            <p class="font-medium text-gray-800 line-clamp-1">${item.name}</p>
+                            ${item.variant ? `<p class="text-[10px] text-gray-400">Varian: ${item.variant}</p>` : ''}
+                            <p class="text-orange-600 font-bold">${formatRupiah(item.price)}</p>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <button onclick="changeQty(${idx}, -1)" class="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">−</button>
+                            <input type="number" min="1" value="${item.qty}" onchange="setQty(${idx}, this.value)" class="w-12 text-center font-semibold border rounded-md p-1 text-xs">
+                            <button onclick="changeQty(${idx}, 1)" class="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">+</button>
+                            <button onclick="removeFromCart(${idx})" class="text-red-400 hover:text-red-600 ml-1"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+                checkoutBtn.disabled = false;
+            }
+
+            document.getElementById('cart-total').innerText = formatRupiah(cartTotal(cart));
+        }
+
+        // ============== HELPER ANIMASI MODAL ==============
+        function showModal(id) {
+            const overlay = document.getElementById(id);
+            const panel = overlay.querySelector('.modal-panel');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('modal-hidden-overlay');
+            if (panel) panel.classList.add('modal-hidden-panel');
+            requestAnimationFrame(() => {
+                overlay.classList.remove('modal-hidden-overlay');
+                if (panel) panel.classList.remove('modal-hidden-panel');
+            });
+        }
+
+        function hideModal(id) {
+            const overlay = document.getElementById(id);
+            const panel = overlay.querySelector('.modal-panel');
+            overlay.classList.add('modal-hidden-overlay');
+            if (panel) panel.classList.add('modal-hidden-panel');
+            setTimeout(() => overlay.classList.add('hidden'), 220);
+        }
+
+        function openCart() {
+            renderCart();
+            showModal('cart-modal');
+        }
+
+        function openTrackOrder() {
+            document.getElementById('track-code-input').value = '';
+            document.getElementById('track-error').classList.add('hidden');
+            document.getElementById('track-result').classList.add('hidden');
+            showModal('track-modal');
+            setTimeout(() => document.getElementById('track-code-input').focus(), 250);
+        }
+
+        function closeTrackOrder() {
+            hideModal('track-modal');
+        }
+
+        async function doTrackOrder() {
+            const code = document.getElementById('track-code-input').value.trim();
+            const errorEl = document.getElementById('track-error');
+            const resultEl = document.getElementById('track-result');
+            errorEl.classList.add('hidden');
+            resultEl.classList.add('hidden');
+            if (!code) {
+                errorEl.innerText = 'Masukkan nomor pesanan dulu.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            try {
+                const res = await fetch(`/api/orders/track/${encodeURIComponent(code)}`);
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Pesanan tidak ditemukan.');
+
+                document.getElementById('tr-code').innerText = data.order_code;
+                document.getElementById('tr-buyer').innerText = `${data.buyer_name} (${data.buyer_wa})`;
+                document.getElementById('tr-payment').innerText = data.payment_status || 'Menunggu Pembayaran';
+                document.getElementById('tr-order').innerText = data.order_status || 'Diproses';
+                document.getElementById('tr-nota-link').href = `nota.html?id=${data.id}`;
+                document.getElementById('tr-wa-link').href = `https://wa.me/${ADMIN_WA_NUMBER}?text=${encodeURIComponent(`Halo Admin, saya ingin menanyakan pesanan No. ${data.order_code}`)}`;
+                resultEl.classList.remove('hidden');
+            } catch (err) {
+                errorEl.innerText = err.message;
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        function closeCart() {
+            hideModal('cart-modal');
+        }
+
+        // ============== CHECKOUT ==============
+        function openCheckout() {
+            const cart = getCart();
+            if (cart.length === 0) return;
+
+            document.getElementById('checkout-summary').innerHTML = cart.map(i =>
+                `<div class="flex justify-between"><span>${i.qty}x ${i.name}${i.variant ? ` (${i.variant})` : ''}</span><span>${formatRupiah(i.price * i.qty)}</span></div>`
+            ).join('');
+            document.getElementById('checkout-total').innerText = 'Total: ' + formatRupiah(cartTotal(cart));
+
+            // Render slot upload file untuk item Cetak Dokumen / Fotocopy
+            const uploadItems = cart.map((i, idx) => ({ ...i, idx })).filter(i => UPLOAD_CATEGORIES.includes(i.category));
+            const uploadWrap = document.getElementById('checkout-uploads');
+            if (uploadItems.length > 0) {
+                uploadWrap.innerHTML = `
+                    <div class="bg-blue-50 p-3 rounded-xl space-y-2">
+                        <p class="text-xs font-semibold text-blue-700"><i class="fa-solid fa-file-arrow-up mr-1"></i> Unggah File untuk Dicetak</p>
+                        ${uploadItems.map(i => `
+                            <div>
+                                <label class="block text-[11px] text-gray-600 mb-1">${i.name}</label>
+                                <input type="file" data-cart-idx="${i.idx}" class="upload-input w-full text-[11px] bg-white border rounded-lg p-1.5" onchange="handleFileSelect(event)">
+                                <p class="text-[10px] mt-0.5" data-status-idx="${i.idx}">Belum ada file dipilih.</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                uploadWrap.innerHTML = '';
+            }
+
+            // Render kolom catatan konsumen untuk item Desain Banner / Logo
+            const noteItems = cart.map((i, idx) => ({ ...i, idx })).filter(i => NOTE_CATEGORIES.includes(i.category));
+            const notesWrap = document.getElementById('checkout-notes');
+            if (noteItems.length > 0) {
+                notesWrap.innerHTML = `
+                    <div class="bg-amber-50 p-3 rounded-xl space-y-2">
+                        <p class="text-xs font-semibold text-amber-700"><i class="fa-solid fa-note-sticky mr-1"></i> Catatan Desain</p>
+                        ${noteItems.map(i => `
+                            <div>
+                                <label class="block text-[11px] text-gray-600 mb-1">${i.name}</label>
+                                <textarea data-cart-idx="${i.idx}" rows="2" class="note-input w-full text-[11px] bg-white border rounded-lg p-1.5" placeholder="Contoh: warna dominan biru, sertakan logo perusahaan, ukuran 3x1 meter" onchange="handleNoteInput(event)">${pendingNotes[i.idx] || ''}</textarea>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                notesWrap.innerHTML = '';
+            }
+
+            // Tampilkan form biodata kalau ada item kategori Undangan
+            const hasUndangan = cart.some(i => i.category === 'Undangan');
+            document.getElementById('checkout-biodata').classList.toggle('hidden', !hasUndangan);
+
+            // Di layar desktop, banyak pelanggan tidak terhubung WhatsApp di perangkatnya —
+            // maka tombol diubah jadi "Konfirmasi Pesanan" (pesanan tetap masuk ke panel admin,
+            // tanpa membuka WhatsApp), sedangkan di mobile tetap alur kirim WA seperti biasa.
+            const submitBtn = document.getElementById('submit-order-btn');
+            submitBtn.innerText = isDesktopView() ? 'Konfirmasi Pesanan' : 'Konfirmasi & Pesan via WhatsApp';
+
+            closeCart();
+            showModal('checkout-modal');
+        }
+
+        function closeCheckout() {
+            hideModal('checkout-modal');
+        }
+
+        function isDesktopView() {
+            return window.matchMedia('(min-width: 1024px)').matches;
+        }
+
+        function openOrderSuccess(order) {
+            document.getElementById('order-success-code').innerText = `No. Pesanan: ${order.order_code}`;
+            document.getElementById('order-success-nota-link').href = `nota.html?id=${order.id}`;
+            showModal('order-success-modal');
+        }
+
+        function closeOrderSuccess() {
+            hideModal('order-success-modal');
+        }
+
+        // Simpan catatan konsumen per index item keranjang (mis. detail desain banner/logo)
+        const pendingNotes = {};
+        function handleNoteInput(e) {
+            const idx = e.target.dataset.cartIdx;
+            const value = e.target.value.trim();
+            if (value) pendingNotes[idx] = value;
+            else delete pendingNotes[idx];
+        }
+
+        // Simpan file yang dipilih per index item keranjang, diunggah nanti saat submit
+        const pendingFiles = {};
+        function handleFileSelect(e) {
+            const idx = e.target.dataset.cartIdx;
+            const file = e.target.files[0];
+            const statusEl = document.querySelector(`[data-status-idx="${idx}"]`);
+            if (file) {
+                pendingFiles[idx] = file;
+                statusEl.innerText = `Terpilih: ${file.name}`;
+                statusEl.classList.add('text-green-600');
+            } else {
+                delete pendingFiles[idx];
+                statusEl.innerText = 'Belum ada file dipilih.';
+                statusEl.classList.remove('text-green-600');
+            }
+        }
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            const res = await fetch('/api/upload', { method: 'POST', body: formData });
+            const result = await res.json();
+            if (!res.ok || !result.success) throw new Error(result.error || 'Gagal mengunggah file');
+            return result;
+        }
+
+        async function submitOrder() {
+            const cart = getCart();
+            const buyer_name = document.getElementById('buyer-name').value.trim();
+            const buyer_wa = document.getElementById('buyer-wa').value.trim();
+            const payment_method = document.getElementById('payment-method').value;
+            const btn = document.getElementById('submit-order-btn');
+
+            if (cart.length === 0) {
+                alert('Keranjang kosong.');
+                return;
+            }
+            if (!buyer_name || !buyer_wa) {
+                alert('Mohon isi nama dan nomor WhatsApp!');
+                return;
+            }
+
+            // Pastikan semua item yang butuh file sudah dipilih filenya
+            const uploadItems = cart.map((i, idx) => ({ ...i, idx })).filter(i => UPLOAD_CATEGORIES.includes(i.category));
+            const missing = uploadItems.find(i => !pendingFiles[i.idx]);
+            if (missing) {
+                alert(`Mohon pilih file untuk "${missing.name}" terlebih dahulu.`);
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = 'Mengunggah file & memproses...';
+
+            try {
+                // Unggah semua file terlebih dahulu, tempelkan URL-nya ke item keranjang terkait
+                const cartWithFiles = [...cart];
+                for (const idx of Object.keys(pendingFiles)) {
+                    const uploaded = await uploadFile(pendingFiles[idx]);
+                    cartWithFiles[idx] = { ...cartWithFiles[idx], file_url: uploaded.file_url, file_name: uploaded.file_name };
+                }
+                // Tempelkan catatan konsumen (mis. detail desain banner/logo) ke item terkait
+                for (const idx of Object.keys(pendingNotes)) {
+                    cartWithFiles[idx] = { ...cartWithFiles[idx], note: pendingNotes[idx] };
+                }
+
+                const hasUndangan = cart.some(i => i.category === 'Undangan');
+                const biodata = hasUndangan ? {
+                    nama_acara: document.getElementById('biodata-nama-acara').value.trim(),
+                    tanggal_acara: document.getElementById('biodata-tanggal').value,
+                    lokasi_acara: document.getElementById('biodata-lokasi').value.trim(),
+                    catatan: document.getElementById('biodata-catatan').value.trim()
+                } : {};
+
+                const res = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ buyer_name, buyer_wa, payment_method, items: cartWithFiles, biodata })
+                });
+                const result = await res.json();
+
+                if (!res.ok || !result.success) {
+                    throw new Error(result.error || 'Gagal membuat pesanan');
+                }
+
+                const order = result.order;
+                const wasDesktop = isDesktopView();
+
+                // Kosongkan keranjang setelah berhasil
+                saveCart([]);
+                for (const k of Object.keys(pendingFiles)) delete pendingFiles[k];
+                for (const k of Object.keys(pendingNotes)) delete pendingNotes[k];
+                closeCheckout();
+
+                if (wasDesktop) {
+                    // Di desktop: tidak semua pelanggan terhubung WhatsApp di perangkatnya.
+                    // Pesanan sudah tersimpan & langsung tampil di panel "Pesanan Masuk" admin;
+                    // cukup tampilkan popup menunggu konfirmasi, tanpa membuka WhatsApp.
+                    openOrderSuccess(order);
+                    return;
+                }
+
+                // Susun pesan broadcast WhatsApp: rincian pesanan + biodata (jika Undangan) + opsi pembayaran
+                const notaUrl = `${window.location.origin}/nota.html?id=${order.id}`;
+                const itemLines = order.items.map(i => {
+                    let line = `- ${i.qty}x ${i.name} (${formatRupiah(i.subtotal)})`;
+                    if (i.file_url) line += ` [File: ${i.file_url}]`;
+                    if (i.note) line += `%0A  Catatan: ${encodeURIComponent(i.note)}`;
+                    return line;
+                }).join('%0A');
+
+                let biodataLines = '';
+                if (hasUndangan) {
+                    biodataLines = `%0A%0ABiodata Undangan:%0ANama Acara: ${encodeURIComponent(biodata.nama_acara || '-')}%0ATanggal: ${encodeURIComponent(biodata.tanggal_acara || '-')}%0ALokasi: ${encodeURIComponent(biodata.lokasi_acara || '-')}%0ACatatan: ${encodeURIComponent(biodata.catatan || '-')}`;
+                }
+
+                const paymentOptionsLines = allPaymentMethods.length > 0
+                    ? '%0A%0AOpsi Pembayaran Tersedia:%0A' + allPaymentMethods.map(m => `- ${encodeURIComponent(m.label)}${m.detail ? ` (${encodeURIComponent(m.detail)})` : ''}`).join('%0A')
+                    : '';
+
+                const waText = `Halo Admin, saya ingin konfirmasi pesanan berikut:%0A%0ANo. Pesanan: ${order.order_code}%0A${itemLines}%0A%0ATotal: ${formatRupiah(order.total_amount)}%0AMetode Bayar Dipilih: ${encodeURIComponent(payment_method)}%0AAtas nama: ${encodeURIComponent(buyer_name)}${biodataLines}${paymentOptionsLines}%0A%0ALihat nota: ${notaUrl}`;
+                window.open(`https://wa.me/${ADMIN_WA_NUMBER}?text=${waText}`, '_blank');
+
+                // Arahkan pembeli ke halaman nota untuk dicetak/disimpan
+                window.location.href = `nota.html?id=${order.id}`;
+            } catch (err) {
+                alert('Gagal membuat pesanan: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = isDesktopView() ? 'Konfirmasi Pesanan' : 'Konfirmasi & Pesan via WhatsApp';
+            }
+        }
+
+        // Akses admin disembunyikan dari tampilan beranda: tap logo 5x berturut-turut untuk membuka panel admin.
+        (function setupHiddenAdminAccess() {
+            let tapCount = 0;
+            let tapTimer = null;
+            document.getElementById('brand-logo').addEventListener('click', () => {
+                tapCount += 1;
+                clearTimeout(tapTimer);
+                tapTimer = setTimeout(() => { tapCount = 0; }, 1500);
+                if (tapCount >= 5) {
+                    tapCount = 0;
+                    window.location.href = 'admin.html';
+                }
+            });
+        })();
+
+        // ============== PENGATURAN TOKO (alamat, maps, WA admin, logo) ==============
+        async function loadSiteSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const s = await res.json();
+                if (!s || Object.keys(s).length === 0) return;
+
+                if (s.admin_wa) ADMIN_WA_NUMBER = s.admin_wa;
+
+                const address = s.store_address || '';
+                document.getElementById('footer-address').innerText = address;
+
+                const waLink = document.getElementById('footer-wa-link');
+                waLink.href = `https://wa.me/${ADMIN_WA_NUMBER}?text=${encodeURIComponent('Halo Admin FaizGrafika, saya ingin bertanya-tanya.')}`;
+
+                if (s.maps_lat && s.maps_lng) {
+                    document.getElementById('footer-map').src = `https://www.google.com/maps?q=${s.maps_lat},${s.maps_lng}&z=16&output=embed`;
+                }
+
+                if (s.logo_url) {
+                    document.getElementById('brand-logo').innerHTML = `
+                        <img src="${s.logo_url}" alt="FaizGrafika" class="h-8 lg:h-10 object-contain">
+                        <span class="brand-font font-bold text-lg lg:text-2xl text-gray-900">FAIZGRAFIKA</span>
+                    `;
+                }
+            } catch (err) { /* biarkan tampilan default kalau gagal memuat */ }
+        }
+
+        loadProducts();
+        loadBanners();
+        loadPaymentMethods();
+        loadSiteSettings();
+        renderCartBadge();
+
+        // Jika datang dari tombol "Beli Sekarang" di halaman detail produk, langsung buka keranjang
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('openCart') === '1') {
+            openCart();
+            window.history.replaceState({}, '', 'index.html');
+        }
+        // Jika datang dari tombol "Beli" di popup jumlah pembelian halaman detail produk, langsung lanjut ke pembayaran
+        if (urlParams.get('directCheckout') === '1') {
+            openCheckout();
+            window.history.replaceState({}, '', 'index.html');
+        }
+    </script>
+</body>
+</html>

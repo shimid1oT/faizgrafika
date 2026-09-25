@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Admin - FaizGrafika</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css">
+    <style>
+        body { background: linear-gradient(135deg, #1f2937 0%, #111827 100%); min-height: 100vh; }
+        .brand-font { font-family: 'Cinzel', serif; letter-spacing: 0.03em; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl p-6 space-y-4">
+        <div class="text-center space-y-1">
+            <i class="fa-solid fa-shield-halved text-orange-500 text-3xl"></i>
+            <h1 class="brand-font font-bold text-lg text-gray-900">FAIZGRAFIKA</h1>
+            <p class="text-xs text-gray-400">Login Panel Admin</p>
+        </div>
+
+        <div class="space-y-3">
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Username</label>
+                <input type="text" id="username" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-orange-400" placeholder="admin">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Password</label>
+                <input type="password" id="password" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-orange-400" placeholder="••••••••">
+            </div>
+            <p id="login-error" class="hidden text-xs text-red-500"></p>
+            <button id="login-btn" onclick="doLogin()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-lg text-sm transition">
+                Masuk
+            </button>
+        </div>
+
+        <a href="index.html" class="block text-center text-xs text-gray-400 hover:text-orange-500">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Kembali ke Toko
+        </a>
+    </div>
+
+    <script>
+        // Kalau sudah punya token, coba langsung lanjut ke dashboard admin.
+        (function checkExisting() {
+            const token = localStorage.getItem('fg_admin_token');
+            if (token) window.location.replace('admin.html');
+        })();
+
+        async function doLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errEl = document.getElementById('login-error');
+            const btn = document.getElementById('login-btn');
+            errEl.classList.add('hidden');
+
+            if (!username || !password) {
+                errEl.innerText = 'Mohon isi username dan password.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = 'Memeriksa...';
+
+            try {
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const result = await res.json();
+                if (!res.ok || !result.success) throw new Error(result.error || 'Login gagal.');
+
+                localStorage.setItem('fg_admin_token', result.token);
+                window.location.replace('admin.html');
+            } catch (err) {
+                errEl.innerText = err.message;
+                errEl.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Masuk';
+            }
+        }
+
+        document.getElementById('password').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') doLogin();
+        });
+    </script>
+</body>
+</html>

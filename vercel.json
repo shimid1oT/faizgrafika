@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/", "destination": "/public/index.html" },
+    { "source": "/index.html", "destination": "/public/index.html" },
+    { "source": "/admin.html", "destination": "/public/admin.html" },
+    { "source": "/admin-login.html", "destination": "/public/admin-login.html" },
+    { "source": "/product.html", "destination": "/public/product.html" },
+    { "source": "/nota.html", "destination": "/public/nota.html" }
+  ]
+}
