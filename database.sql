@@ -39,5 +39,7 @@ create policy "Enable insert/update/delete for all users" on products for all us
 
 drop policy if exists "Enable read access for orders" on orders;
 drop policy if exists "Enable insert for orders" on orders;
+drop policy if exists "Enable update for orders" on orders;
 create policy "Enable read access for orders" on orders for select using (true);
 create policy "Enable insert for orders" on orders for insert with check (true);
+create policy "Enable update for orders" on orders for update using (true) with check (true);

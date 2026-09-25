@@ -1,4 +1,3 @@
- HEAD
 # Dependencies
 node_modules/
 
@@ -24,7 +23,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
-=======
+
 # Logs
 logs
 *.log
@@ -168,4 +167,3 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
-489b7a4f9031a7421cf5632f091a9311d677e520

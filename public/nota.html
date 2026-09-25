@@ -16,16 +16,16 @@
         }
     </style>
 </head>
-<body class="text-gray-800 min-h-screen py-6">
-    <div class="max-w-sm mx-auto px-4 space-y-4">
-
-        <div class="no-print flex justify-between items-center">
-            <a href="index.html" class="text-xs text-gray-500 hover:text-orange-500"><i class="fa-solid fa-arrow-left mr-1"></i> Kembali ke Toko</a>
-            <button onclick="window.print()" class="text-xs bg-gray-900 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-gray-700">
+<body class="text-gray-800 min-h-screen py-6 lg:py-10">
+    <div class="max-w-sm lg:max-w-2xl mx-auto px-4">
+        <div class="no-print flex justify-between items-center mb-4">
+            <a href="index.html" class="text-xs lg:text-sm text-gray-500 hover:text-orange-500"><i class="fa-solid fa-arrow-left mr-1"></i> Kembali ke Toko</a>
+            <button onclick="window.print()" class="text-xs lg:text-sm bg-gray-900 text-white px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg font-semibold hover:bg-gray-700">
                 <i class="fa-solid fa-print mr-1"></i> Cetak Nota
             </button>
         </div>
 
+        <div class="max-w-sm mx-auto">
         <div id="nota-card" class="bg-white rounded-2xl shadow-sm border p-5 space-y-4">
             <div id="nota-loading" class="text-center text-xs text-gray-400 py-10">Memuat data nota...</div>
             <div id="nota-content" class="hidden space-y-4">
@@ -40,7 +40,8 @@
                 <div class="text-xs space-y-1">
                     <div class="flex justify-between"><span class="text-gray-500">No. Pesanan</span><span id="n-code" class="font-semibold">-</span></div>
                     <div class="flex justify-between"><span class="text-gray-500">Tanggal</span><span id="n-date">-</span></div>
-                    <div class="flex justify-between"><span class="text-gray-500">Status</span><span id="n-status" class="font-semibold text-orange-600">-</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Status Pembayaran</span><span id="n-status" class="font-semibold text-orange-600">-</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Status Pesanan</span><span id="n-order-status" class="font-semibold text-blue-600">-</span></div>
                 </div>
 
                 <div class="text-xs space-y-1 border-t border-dashed pt-3">
@@ -67,27 +68,13 @@
                     <span id="n-total" class="font-bold text-orange-600 text-base">Rp 0</span>
                 </div>
 
-                <div id="n-files-wrap" class="hidden border-t border-dashed pt-3 text-xs space-y-1">
-                    <p class="text-gray-500 font-medium">File yang Diunggah</p>
-                    <div id="n-files"></div>
-                </div>
-
-                <div id="n-biodata-wrap" class="hidden border-t border-dashed pt-3 text-xs space-y-1">
-                    <p class="text-gray-500 font-medium">Biodata Undangan</p>
-                    <div id="n-biodata"></div>
-                </div>
-
-                <div id="n-notes-wrap" class="hidden border-t border-dashed pt-3 text-xs space-y-1">
-                    <p class="text-gray-500 font-medium">Catatan Desain</p>
-                    <div id="n-notes"></div>
-                </div>
-
                 <p class="text-center text-[10px] text-gray-400 pt-2 border-t border-dashed">
                     Terima kasih telah berbelanja di FaizGrafika 🙏<br>
                     Simpan nota ini sebagai bukti pemesanan Anda.
                 </p>
             </div>
             <div id="nota-error" class="hidden text-center text-xs text-red-500 py-10">Nota tidak ditemukan.</div>
+        </div>
         </div>
     </div>
 
@@ -128,7 +115,8 @@
             document.getElementById('n-date').innerText = new Date(order.created_at).toLocaleString('id-ID', {
                 dateStyle: 'medium', timeStyle: 'short'
             });
-            document.getElementById('n-status').innerText = order.status;
+            document.getElementById('n-status').innerText = order.payment_status || order.status || 'Menunggu Pembayaran';
+            document.getElementById('n-order-status').innerText = order.order_status || 'Diproses';
             document.getElementById('n-buyer').innerText = order.buyer_name;
             document.getElementById('n-wa').innerText = order.buyer_wa;
             document.getElementById('n-payment').innerText = order.payment_method;
@@ -137,38 +125,11 @@
             const items = Array.isArray(order.items) ? order.items : [];
             document.getElementById('n-items').innerHTML = items.map(i => `
                 <tr>
-                    <td class="py-1.5">${i.name}</td>
+                    <td class="py-1.5">${i.name}${i.variant ? `<br><span class="text-gray-400 text-[10px]">Varian: ${i.variant}</span>` : ''}</td>
                     <td class="py-1.5 text-center">${i.qty}</td>
                     <td class="py-1.5 text-right">${formatRupiah(i.subtotal)}</td>
                 </tr>
             `).join('');
-
-            const filesItems = items.filter(i => i.file_url);
-            if (filesItems.length > 0) {
-                document.getElementById('n-files-wrap').classList.remove('hidden');
-                document.getElementById('n-files').innerHTML = filesItems.map(i =>
-                    `<a href="${i.file_url}" target="_blank" class="block text-blue-500 underline">${i.name}: ${i.file_name || 'Lihat File'}</a>`
-                ).join('');
-            }
-
-            const noteItems = items.filter(i => i.note);
-            if (noteItems.length > 0) {
-                document.getElementById('n-notes-wrap').classList.remove('hidden');
-                document.getElementById('n-notes').innerHTML = noteItems.map(i =>
-                    `<p><b>${i.name}:</b> ${i.note}</p>`
-                ).join('');
-            }
-
-            const biodata = order.biodata || {};
-            if (Object.keys(biodata).length > 0 && (biodata.nama_acara || biodata.tanggal_acara || biodata.lokasi_acara)) {
-                document.getElementById('n-biodata-wrap').classList.remove('hidden');
-                document.getElementById('n-biodata').innerHTML = `
-                    <div class="flex justify-between"><span class="text-gray-500">Nama Acara</span><span>${biodata.nama_acara || '-'}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-500">Tanggal</span><span>${biodata.tanggal_acara || '-'}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-500">Lokasi</span><span>${biodata.lokasi_acara || '-'}</span></div>
-                    ${biodata.catatan ? `<div class="flex justify-between"><span class="text-gray-500">Catatan</span><span>${biodata.catatan}</span></div>` : ''}
-                `;
-            }
         }
 
         loadNota();
